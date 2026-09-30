@@ -3,10 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Expense;
+use App\Models\Reminder;
 use App\Actions\TransactionAction;
+use App\Actions\ReminderAction;
 use App\Services\GeminiService;
 use App\Services\KirimDevService;
 use App\Services\MessageParser;
+use Illuminate\Support\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -49,7 +52,7 @@ class ProcessWhatsAppMessage implements ShouldQueue
     // ── 3. Route ke handler ───────────────────────────────────────────
     $reply = match ($parsed['type']) {
       'transaction' => $this->handleTransaction($parsed['data']),
-      'command'     => $this->handleCommand($parsed['intent']),
+      'command'     => $this->handleCommand($parsed['intent'], $parsed['data'] ?? []),
       default       => $this->replyUnknown(),
     };
 
@@ -97,15 +100,18 @@ class ProcessWhatsAppMessage implements ShouldQueue
 
   // ─── Command Router ─────────────────────────────────────────
 
-  private function handleCommand(string $intent): string
+  private function handleCommand(string $intent, array $data = []): string
   {
     return match ($intent) {
-      'rekap_harian'   => $this->replyRekapHarian(),
-      'rekap_mingguan' => $this->replyRekapMingguan(),
-      'rekap_bulanan'  => $this->replyRekapBulanan(),
-      'hapus_terakhir' => $this->replyHapusTerakhir(),
-      'bantuan'        => $this->replyBantuan(),
-      default          => $this->replyUnknown(),
+      'rekap_harian'    => $this->replyRekapHarian(),
+      'rekap_mingguan'  => $this->replyRekapMingguan(),
+      'rekap_bulanan'   => $this->replyRekapBulanan(),
+      'hapus_terakhir'  => $this->replyHapusTerakhir(),
+      'daftar_tagihan'  => $this->replyDaftarTagihan(),
+      'reminder_lunas'  => $this->replyReminderLunas($data),
+      'reminder_cicil'  => $this->replyReminderCicil($data),
+      'bantuan'         => $this->replyBantuan(),
+      default           => $this->replyUnknown(),
     };
   }
 
@@ -272,11 +278,187 @@ class ProcessWhatsAppMessage implements ShouldQueue
       "*🗑️ Hapus:*",
       "• hapus → hapus transaksi terakhir",
       "",
+      "*🔔 Reminder & Tagihan:*",
+      "• tagihan → lihat daftar tagihan aktif",
+      "• selesai [id] → bayar/lunasi tagihan",
+      "• cicil [nominal] [tgl] → bayar cicilan tagihan",
+      "",
       "*💡 Saran kategori pengeluaran:*",
       "food • transport • bills",
       "shopping • health • other",
       "",
     ]);
+  }
+
+  // ─── Reminder & Tagihan ─────────────────────────────────────
+
+  private function replyDaftarTagihan(): string
+  {
+    $tagihan = Reminder::byNumber($this->from)
+      ->whereIn('status', ['aktif', 'overdue'])
+      ->where('sisa_tagihan', '>', 0)
+      ->orderBy('tanggal_jatuh_tempo')
+      ->get();
+
+    if ($tagihan->isEmpty()) {
+      return "🎉 *Tidak Ada Tagihan Aktif*\n\nSemua tagihan Anda lunas atau belum ada jadwal tagihan.";
+    }
+
+    $lines = ["📋 *Daftar Tagihan Aktif*", "━━━━━━━━━━━━━━", ""];
+    $totalSisa = 0;
+
+    foreach ($tagihan as $t) {
+      $due = Carbon::parse($t->tanggal_jatuh_tempo);
+      $isOverdue = $due->isPast() && !$due->isToday();
+      $badge = $isOverdue ? "⚠️ *TELAT*" : "📅 " . $due->format('d/m/Y');
+
+      $lines[] = "*[ID: {$t->id}]* {$t->nama_tagihan}";
+      $lines[] = "💰 Sisa: Rp " . $this->rupiah($t->sisa_tagihan) . " | {$badge}";
+      if ($t->keterangan) {
+        $lines[] = "📝 {$t->keterangan}";
+      }
+      $lines[] = "";
+      $totalSisa += $t->sisa_tagihan;
+    }
+
+    $lines[] = "━━━━━━━━━━━━━━";
+    $lines[] = "💵 *Total Seluruh Tagihan: Rp " . $this->rupiah($totalSisa) . "*";
+    $lines[] = "";
+    $lines[] = "💡 *Aksi Langsung via WhatsApp:*";
+    $lines[] = "• Ketik *SELESAI [ID]* untuk melunasi";
+    $lines[] = "• Ketik *CICIL [ID] [Nominal] [Tgl_Baru]*";
+
+    return implode("\n", $lines);
+  }
+
+  private function replyReminderLunas(array $data): string
+  {
+    $reminderId = $data['reminder_id'] ?? null;
+    $reminder = null;
+
+    if ($reminderId) {
+      $reminder = Reminder::where('id', $reminderId)->where('wa_number', $this->from)->first();
+    } else {
+      $activeReminders = Reminder::byNumber($this->from)
+        ->whereIn('status', ['aktif', 'overdue'])
+        ->where('sisa_tagihan', '>', 0)
+        ->orderBy('tanggal_jatuh_tempo')
+        ->get();
+
+      if ($activeReminders->count() === 1) {
+        $reminder = $activeReminders->first();
+      } elseif ($activeReminders->count() > 1) {
+        $lines = [
+          "⚠️ *Pilih Tagihan yang Ingin Dilunasi:*",
+          "Ada lebih dari 1 tagihan aktif. Silakan tentukan ID tagihan:",
+          ""
+        ];
+        foreach ($activeReminders as $r) {
+          $lines[] = "• Ketik *SELESAI {$r->id}* → {$r->nama_tagihan} (Rp " . $this->rupiah($r->sisa_tagihan) . ")";
+        }
+        return implode("\n", $lines);
+      }
+    }
+
+    if (!$reminder) {
+      return "📭 Tagihan tidak ditemukan atau sudah lunas.\nKetik *tagihan* untuk melihat daftar tagihan aktif.";
+    }
+
+    $action = app(ReminderAction::class);
+    $nominal = $reminder->sisa_tagihan;
+    $result = $action->bayarTagihan($reminder, $nominal, null, 'whatsapp', 'Pelunasan via WhatsApp');
+
+    if (!$result['is_valid']) {
+      return "❌ Gagal memproses: " . ($result['message'] ?? 'Terjadi kesalahan.');
+    }
+
+    $saldo = Expense::hitungSaldo($this->from);
+
+    return implode("\n", [
+      "✅ *Tagihan LUNAS!*",
+      "━━━━━━━━━━━━━━",
+      "📌 *Tagihan:* {$reminder->nama_tagihan}",
+      "💰 *Nominal Dibayar:* Rp " . $this->rupiah($nominal),
+      "🏷️ *Kategori:* {$reminder->kategori}",
+      "",
+      "📊 Pembayaran otomatis dicatat di Laporan Keuangan.",
+      "💳 Total Saldo Saat Ini: *Rp " . $this->rupiah((int) $saldo) . "*",
+    ]);
+  }
+
+  private function replyReminderCicil(array $data): string
+  {
+    $reminderId = $data['reminder_id'] ?? null;
+    $nominal    = $data['nominal'] ?? 0;
+    $newDueDate = $data['new_due_date'] ?? null;
+
+    if ($nominal <= 0) {
+      return "❓ Nominal cicilan tidak valid.\nContoh: *CICIL 400000 25/10/2026*";
+    }
+
+    $reminder = null;
+    if ($reminderId) {
+      $reminder = Reminder::where('id', $reminderId)->where('wa_number', $this->from)->first();
+    } else {
+      $activeReminders = Reminder::byNumber($this->from)
+        ->whereIn('status', ['aktif', 'overdue'])
+        ->where('sisa_tagihan', '>', 0)
+        ->orderBy('tanggal_jatuh_tempo')
+        ->get();
+
+      if ($activeReminders->count() === 1) {
+        $reminder = $activeReminders->first();
+      } elseif ($activeReminders->count() > 1) {
+        $lines = [
+          "⚠️ *Pilih Tagihan yang Ingin Dicicil:*",
+          "Ada beberapa tagihan aktif. Sertakan ID tagihan:",
+          ""
+        ];
+        foreach ($activeReminders as $r) {
+          $lines[] = "• Ketik *CICIL {$r->id} {$nominal} " . ($newDueDate ?? '') . "* → {$r->nama_tagihan} (Sisa: Rp " . $this->rupiah($r->sisa_tagihan) . ")";
+        }
+        return implode("\n", $lines);
+      }
+    }
+
+    if (!$reminder) {
+      return "📭 Tagihan tidak ditemukan atau sudah lunas.\nKetik *tagihan* untuk melihat daftar tagihan aktif.";
+    }
+
+    $action = app(ReminderAction::class);
+    $result = $action->bayarTagihan($reminder, $nominal, $newDueDate, 'whatsapp', 'Cicilan via WhatsApp');
+
+    if (!$result['is_valid']) {
+      return "❌ Gagal memproses: " . ($result['message'] ?? 'Terjadi kesalahan.');
+    }
+
+    $saldo = Expense::hitungSaldo($this->from);
+    $statusMsg = $result['is_lunas'] ? "🎉 *LUNAS!*" : "Sisa Tagihan: *Rp " . $this->rupiah($result['sisa_tagihan']) . "*";
+
+    $lines = [
+      "✅ *Cicilan Berhasil Dicatat!*",
+      "━━━━━━━━━━━━━━",
+      "📌 *Tagihan:* {$reminder->nama_tagihan}",
+      "💸 *Dibayar:* Rp " . $this->rupiah($result['nominal_bayar']),
+      "📊 {$statusMsg}",
+    ];
+
+    if (!$result['is_lunas']) {
+      if (!empty($result['jatuh_tempo_baru'])) {
+        $lines[] = "📅 *Jatuh Tempo Baru:* " . $result['jatuh_tempo_baru'];
+      } elseif ($reminder->perulangan !== 'tidak') {
+        $lines[] = "📅 *Jatuh Tempo Periode Ini:* " . ($result['jatuh_tempo'] ?? $reminder->tanggal_jatuh_tempo?->format('d/m/Y'));
+        $lines[] = "ℹ️ Tagihan berulang (" . ucfirst($reminder->perulangan) . "): periode berikutnya otomatis dibuat setelah lunas.";
+      } elseif (!empty($result['jatuh_tempo'])) {
+        $lines[] = "📅 *Jatuh Tempo:* " . $result['jatuh_tempo'];
+      }
+    }
+
+    $lines[] = "";
+    $lines[] = "📝 Pengeluaran telah otomatis masuk ke Laporan Keuangan.";
+    $lines[] = "💳 Total Saldo: *Rp " . $this->rupiah((int) $saldo) . "*";
+
+    return implode("\n", $lines);
   }
 
   // ─── Unknown ────────────────────────────────────────────────

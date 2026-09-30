@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/jquery-ui.css')); ?>">
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/inter.css')); ?>">
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/notyf-custom.css')); ?>">
+    <?php echo $__env->yieldPushContent('styles'); ?>
 
     <style>
         :root {
@@ -416,6 +417,13 @@
 
                 <i class="bi bi-receipt"></i>
                 <span>Transaksi</span>
+
+            </a>
+
+            <a href="<?php echo e(route('reminder')); ?>" class="nav-link <?php echo e(request()->routeIs('reminder*') ? 'active' : ''); ?>">
+
+                <i class="bi bi-bell-fill"></i>
+                <span>Reminder Tagihan</span>
 
             </a>
 

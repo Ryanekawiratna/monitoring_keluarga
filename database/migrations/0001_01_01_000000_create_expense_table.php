@@ -14,6 +14,7 @@ return new class extends Migration
       $table->string('keterangan', 100);
       $table->string('kategori', 50);
       $table->unsignedBigInteger('nominal');
+      $table->string('jenis_transaksi', 20)->default('keluar');
       $table->timestamp('recorded_at');
       $table->timestamps();
 

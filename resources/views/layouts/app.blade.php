@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/jquery-ui.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/inter.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/notyf-custom.css') }}">
+    @stack('styles')
 
     <style>
         :root {
@@ -422,6 +423,13 @@
 
                 <i class="bi bi-receipt"></i>
                 <span>Transaksi</span>
+
+            </a>
+
+            <a href="{{ route('reminder') }}" class="nav-link {{ request()->routeIs('reminder*') ? 'active' : '' }}">
+
+                <i class="bi bi-bell-fill"></i>
+                <span>Reminder Tagihan</span>
 
             </a>
 

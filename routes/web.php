@@ -4,6 +4,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ReminderController;
 use Illuminate\Support\Facades\Route;
 
 // ─── Auth ─────────────────────────────────────────────────────
@@ -35,6 +36,15 @@ Route::middleware('auth')->group(function () {
   Route::post('/transaksi/submitTransaksi', [TransactionController::class, 'submitTransaksi'])->name('transaksi.submitTransaksi');
   // Route::delete('/transaksi/{expense}', [TransactionController::class, 'hapus'])->name('transaksi.hapus');
   Route::post('/transaksi/hapusTransaksi', [TransactionController::class, 'hapusTransaksi'])->name('transaksi.hapusTransaksi');
+
+  // ─── Reminder Tagihan ─────────────────────────────────────────
+  Route::get('/reminder', [ReminderController::class, 'index'])->name('reminder');
+  Route::post('/reminder/bbox', [ReminderController::class, 'bboxReminder'])->name('reminder.bbox');
+  Route::post('/reminder/bboxBayar', [ReminderController::class, 'bboxBayar'])->name('reminder.bboxBayar');
+  Route::post('/reminder/submit', [ReminderController::class, 'submitReminder'])->name('reminder.submit');
+  Route::post('/reminder/submitBayar', [ReminderController::class, 'submitBayar'])->name('reminder.submitBayar');
+  Route::post('/reminder/hapus', [ReminderController::class, 'hapusReminder'])->name('reminder.hapus');
+  Route::post('/reminder/toggleStatus', [ReminderController::class, 'toggleStatus'])->name('reminder.toggleStatus');
 });
 
 // ─── Dashboard (protected) ────────────────────────────────────

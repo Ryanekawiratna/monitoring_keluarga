@@ -104,9 +104,9 @@ var trans = {
             error: function (xhr, status, error) {
                 closeLoading();
                 showError("Proses Gagal");
-                console.log("Status:", status);
-                console.log("Error:", error);
-                console.log("Respons Mentah Server:", xhr.responseText); // <-- Lihat ini di Console browser
+                // console.log("Status:", status);
+                // console.log("Error:", error);
+                // console.log("Respons Mentah Server:", xhr.responseText); // <-- Lihat ini di Console browser
             },
             success: function (resp) {
                 closeLoading();

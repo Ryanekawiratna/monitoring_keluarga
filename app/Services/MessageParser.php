@@ -16,6 +16,9 @@ class MessageParser
     'rekap bulan'     => 'rekap_bulanan',
     'rekap'           => 'rekap_harian',
     'hapus'           => 'hapus_terakhir',
+    'tagihan'         => 'daftar_tagihan',
+    'reminder'        => 'daftar_tagihan',
+    'cek tagihan'     => 'daftar_tagihan',
     'bantuan'         => 'bantuan',
     'help'            => 'bantuan',
     'menu'            => 'bantuan',
@@ -361,6 +364,58 @@ class MessageParser
     foreach (self::COMMANDS as $keyword => $intent) {
       if ($normalized === $keyword) {
         return ['type' => 'command', 'intent' => $intent, 'raw' => $raw];
+      }
+    }
+
+    // ── 1.5 Cek command Reminder: SELESAI / LUNAS ─────────────────────
+    // Format: SELESAI atau SELESAI 5 atau LUNAS 5
+    if (preg_match('/^(selesai|lunas)(?:\s+(\d+))?$/iu', $trimmed, $mSelesai)) {
+      return [
+        'type'   => 'command',
+        'intent' => 'reminder_lunas',
+        'data'   => [
+          'reminder_id' => !empty($mSelesai[2]) ? (int) $mSelesai[2] : null,
+        ],
+        'raw'    => $raw,
+      ];
+    }
+
+    // ── 1.6 Cek command Reminder: CICIL ───────────────────────────────
+    // Format: CICIL [Nominal] [Tanggal_Jatuh_Tempo_Sisa] (contoh: CICIL 400000 25/10/2026)
+    // atau:   CICIL [ID] [Nominal] [Tanggal_Jatuh_Tempo_Sisa] (contoh: CICIL 5 400000 25/10/2026)
+    if (preg_match('/^cicil\s+(.+)$/iu', $trimmed, $mCicil)) {
+      $parts = preg_split('/\s+/', trim($mCicil[1]));
+      $reminderId = null;
+      $dateStr = null;
+
+      // Jika ada 3 token dan token pertama adalah angka kecil/ID (bukan nominal ribuan)
+      // atau jika 3 token dengan pola: id nominal tanggal
+      if (count($parts) >= 3 && is_numeric($parts[0]) && (int)$parts[0] < 1000) {
+        $reminderId = (int) array_shift($parts);
+      }
+
+      // Cek apakah token terakhir adalah format tanggal: dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd
+      $lastPart = end($parts);
+      if (preg_match('/^\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}$/', $lastPart)) {
+        $dateStr = array_pop($parts);
+      }
+
+      // Sisa token adalah nominal (misal 400000 atau 400rb)
+      $nomPart = implode(' ', $parts);
+      if (preg_match('/^([\d.,]+)\s*(rb|ribu|k|jt|juta)?$/iu', $nomPart, $mNom)) {
+        $nominal = $this->parseNominal($mNom[1], mb_strtolower($mNom[2] ?? ''));
+        if ($nominal !== null && $nominal > 0) {
+          return [
+            'type'   => 'command',
+            'intent' => 'reminder_cicil',
+            'data'   => [
+              'reminder_id'  => $reminderId,
+              'nominal'      => $nominal,
+              'new_due_date' => $dateStr,
+            ],
+            'raw'    => $raw,
+          ];
+        }
       }
     }
 
