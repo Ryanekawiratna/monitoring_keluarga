@@ -6,7 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Dashboard') — Monitoring Keluarga</title>
+    <title>@yield('title', 'Dashboard') — Rumanesia</title>
+
+    {{-- Favicon (Hanya logo icon untuk URL / browser tab) --}}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon-16x16.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/images/logo-icon-rounded.png') }}">
 
     {{-- =========================
         CSS
@@ -391,13 +397,9 @@
 
         <div class="sidebar-brand">
 
-            <div class="logo-box">
-                <i class="bi bi-whatsapp text-white fs-5"></i>
-            </div>
-
-            <div>
-                <h6>Monitoring Keluarga</h6>
-            </div>
+            <a href="{{ route('dashboard') }}" class="d-flex align-items-center text-decoration-none">
+                <img src="{{ asset('assets/images/logo.png') }}" alt="Rumanesia" style="height: 36px; width: auto; max-width: 170px;" class="img-fluid">
+            </a>
 
             <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" aria-label="Close"
                 onclick="toggleSidebar()">

@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login — Rumanesia</title>
 
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('assets/images/favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('assets/images/favicon-16x16.png')); ?>">
+    <link rel="shortcut icon" href="<?php echo e(asset('favicon.ico')); ?>">
+    <link rel="apple-touch-icon" href="<?php echo e(asset('assets/images/logo-icon-rounded.png')); ?>">
+
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/bootstrap.css')); ?>">
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/bootstrap.icon.css')); ?>">
 
@@ -182,11 +188,7 @@
     <div class="login-card">
 
         <div class="text-center mb-4">
-            <div class="logo-box">
-                <i class="bi bi-whatsapp text-white fs-3"></i>
-            </div>
-            <h1 class="text-white fs-4 fw-bold mb-1">Rumanesia</h1>
-            
+            <img src="<?php echo e(asset('assets/images/logo.png')); ?>" alt="Rumanesia" class="img-fluid mb-2" style="max-height: 56px; width: auto;">
         </div>
 
         <?php if(session('success')): ?>
@@ -242,4 +244,4 @@
 </body>
 
 </html>
-<?php /**PATH C:\Users\user\Downloads\monitoringkeluarga\resources\views/auth/login.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\user\Downloads\rumanesia\resources\views/auth/login.blade.php ENDPATH**/ ?>

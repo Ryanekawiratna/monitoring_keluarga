@@ -6,28 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register — Rumanesia</title>
 
-    {{-- Favicon (Hanya logo icon untuk URL / browser tab) --}}
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon-16x16.png') }}">
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
-    <link rel="apple-touch-icon" href="{{ asset('assets/images/logo-icon-rounded.png') }}">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('assets/images/favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('assets/images/favicon-16x16.png')); ?>">
+    <link rel="shortcut icon" href="<?php echo e(asset('favicon.ico')); ?>">
+    <link rel="apple-touch-icon" href="<?php echo e(asset('assets/images/logo-icon-rounded.png')); ?>">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.icon.css') }}">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/bootstrap.css')); ?>">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/bootstrap.icon.css')); ?>">
 
-    <script src="{{ asset('assets/js/jquery.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery-ui.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('assets/js/bootbox.js') }}"></script>
+    <script src="<?php echo e(asset('assets/js/jquery.js')); ?>"></script>
+    <script src="<?php echo e(asset('assets/js/jquery-ui.js')); ?>"></script>
+    <script src="<?php echo e(asset('assets/js/jquery-ui.min.js')); ?>"></script>
+    <script src="<?php echo e(asset('assets/js/bootbox.js')); ?>"></script>
 
-    <link rel="stylesheet" href="{{ asset('assets/css/sweetalert2.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/jquery-ui.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/jquery-ui.css') }}">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/sweetalert2.css')); ?>">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/jquery-ui.min.css')); ?>">
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/jquery-ui.css')); ?>">
 
-    <script src="{{ asset('assets/js/sweetalert2.all.min.js') }}"></script>
-    <link rel="stylesheet" href="{{ asset('assets/css/inter.css') }}">
-    <script src="{{ asset('assets/js/helper.js') }}"></script>
-    <script src="{{ asset('assets/js/users.js') }}"></script>
+    <script src="<?php echo e(asset('assets/js/sweetalert2.all.min.js')); ?>"></script>
+    <link rel="stylesheet" href="<?php echo e(asset('assets/css/inter.css')); ?>">
+    <script src="<?php echo e(asset('assets/js/helper.js')); ?>"></script>
+    <script src="<?php echo e(asset('assets/js/users.js')); ?>"></script>
 
     <style>
         :root {
@@ -223,32 +223,32 @@
     <div class="login-card">
 
         <div class="text-center mb-4">
-            <img src="{{ asset('assets/images/logo.png') }}" alt="Rumanesia" class="img-fluid mb-3" style="max-height: 52px; width: auto;">
+            <img src="<?php echo e(asset('assets/images/logo.png')); ?>" alt="Rumanesia" class="img-fluid mb-3" style="max-height: 52px; width: auto;">
             <h1 class="text-white fs-4 fw-bold mb-1">Daftar Akun Baru</h1>
-            {{-- <p class="text-secondary small mb-0">Lengkapi data untuk masuk ke sistem</p> --}}
+            
         </div>
 
-        @if ($errors->any())
+        <?php if($errors->any()): ?>
             <div class="alert alert-danger small py-2 mb-3" style="color: #ef4444;" role="alert">
                 <div class="d-flex align-items-center gap-2 mb-1 fw-bold">
                     <i class="bi bi-exclamation-triangle-fill"></i> Ada kesalahan input:
                 </div>
                 <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </ul>
             </div>
-        @endif
+        <?php endif; ?>
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
+        <form method="POST" action="<?php echo e(route('register')); ?>">
+            <?php echo csrf_field(); ?>
 
             <div class="mb-3">
                 <label class="form-label">Nama Lengkap</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
-                    <input type="text" name="nama" value="{{ old('nama') }}" required autofocus
+                    <input type="text" name="nama" value="<?php echo e(old('nama')); ?>" required autofocus
                         class="form-control" placeholder="Masukkan nama Anda">
                 </div>
             </div>
@@ -257,7 +257,7 @@
                 <label class="form-label">Email</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
-                    <input type="email" name="email" value="{{ old('email') }}" required class="form-control"
+                    <input type="email" name="email" value="<?php echo e(old('email')); ?>" required class="form-control"
                         placeholder="nama@email.com">
                 </div>
             </div>
@@ -266,7 +266,7 @@
                 <label class="form-label">Nomor HP</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-telephone-fill"></i></span>
-                    <input type="text" name="nomor_hp" value="{{ old('nomor_hp') }}" required class="form-control"
+                    <input type="text" name="nomor_hp" value="<?php echo e(old('nomor_hp')); ?>" required class="form-control"
                         placeholder="Contoh: 628123456789">
                 </div>
             </div>
@@ -291,7 +291,7 @@
             </button>
 
             <div class="text-center small text-secondary">
-                Sudah punya akun? <a href="{{ route('login') }}" class="auth-link">Login di sini</a>
+                Sudah punya akun? <a href="<?php echo e(route('login')); ?>" class="auth-link">Login di sini</a>
             </div>
         </form>
 
@@ -299,3 +299,4 @@
 </body>
 
 </html>
+<?php /**PATH C:\Users\user\Downloads\rumanesia\resources\views/auth/register.blade.php ENDPATH**/ ?>

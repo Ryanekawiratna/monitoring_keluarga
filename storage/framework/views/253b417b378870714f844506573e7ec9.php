@@ -9,6 +9,12 @@
     <title><?php echo $__env->yieldContent('title', 'Dashboard'); ?> — Rumanesia</title>
 
     
+    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo e(asset('assets/images/favicon-32x32.png')); ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo e(asset('assets/images/favicon-16x16.png')); ?>">
+    <link rel="shortcut icon" href="<?php echo e(asset('favicon.ico')); ?>">
+    <link rel="apple-touch-icon" href="<?php echo e(asset('assets/images/logo-icon-rounded.png')); ?>">
+
+    
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/bootstrap.css')); ?>">
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/select2.css')); ?>">
     <link rel="stylesheet" href="<?php echo e(asset('assets/css/bootstrap.icon.css')); ?>">
@@ -385,13 +391,9 @@
 
         <div class="sidebar-brand">
 
-            <div class="logo-box">
-                <i class="bi bi-whatsapp text-white fs-5"></i>
-            </div>
-
-            <div>
-                <h6>Rumanesia</h6>
-            </div>
+            <a href="<?php echo e(route('dashboard')); ?>" class="d-flex align-items-center text-decoration-none">
+                <img src="<?php echo e(asset('assets/images/logo.png')); ?>" alt="Rumanesia" style="height: 36px; width: auto; max-width: 170px;" class="img-fluid">
+            </a>
 
             <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" aria-label="Close"
                 onclick="toggleSidebar()">
@@ -615,4 +617,4 @@
 </body>
 
 </html>
-<?php /**PATH C:\Users\user\Downloads\monitoringkeluarga\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\user\Downloads\rumanesia\resources\views/layouts/app.blade.php ENDPATH**/ ?>

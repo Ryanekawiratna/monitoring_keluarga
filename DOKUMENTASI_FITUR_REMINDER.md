@@ -6,7 +6,7 @@ Dokumen ini memuat spesifikasi lengkap, arsitektur database yang telah diselaras
 
 ## 1. Analisis & Penyesuaian Skema Database Eksisting
 
-Pada perancangan awal, modul reminder mereferensikan tabel generic `transactions`. Namun, di aplikasi **Monitoring Keluarga**, sistem pencatatan keuangan yang sudah aktif menggunakan tabel **`expenses`**. 
+Pada perancangan awal, modul reminder mereferensikan tabel generic `transactions`. Namun, di aplikasi **Rumanesia**, sistem pencatatan keuangan yang sudah aktif menggunakan tabel **`expenses`**. 
 
 Agar fitur baru ini **tidak merusak kode lama** dan langsung terhubung dengan Dashboard, Grafik Saldo, serta Chatbot WhatsApp yang sudah ada, penyesuaian berikut diterapkan:
 

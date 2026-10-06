@@ -4,7 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login — Monitoring Keluarga</title>
+    <title>Login — Rumanesia</title>
+
+    {{-- Favicon (Hanya logo icon untuk URL / browser tab) --}}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('assets/images/favicon-16x16.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/images/logo-icon-rounded.png') }}">
 
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.icon.css') }}">
@@ -182,11 +188,7 @@
     <div class="login-card">
 
         <div class="text-center mb-4">
-            <div class="logo-box">
-                <i class="bi bi-whatsapp text-white fs-3"></i>
-            </div>
-            <h1 class="text-white fs-4 fw-bold mb-1">Monitoring Keluarga</h1>
-            {{-- <p class="text-secondary small mb-0">Login ke dashboard admin</p> --}}
+            <img src="{{ asset('assets/images/logo.png') }}" alt="Rumanesia" class="img-fluid mb-2" style="max-height: 56px; width: auto;">
         </div>
 
         @if (session('success'))
